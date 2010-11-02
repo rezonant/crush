@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby1.9.1
+
+require File.dirname(__FILE__) + '/../lib/crush'
+#require File.dirname(__FILE__) + '/../lib/rush/shell'
+
+$CRUSH_EXECUTABLE = __FILE__
+
+shell = Crush::Shell.new
+
+if ARGV.size > 0
+	if ARGV[0] == '-eval'
+		ARGV.shift
+		shell.execute ARGV.join(' ')
+	elsif %w{-help --help -h -?}.member? ARGV[0]
+		puts "usage: crush [ -eval <expr> | FILE ... ]"
+		puts
+		puts "  -eval <expr>   -- evaluate a single expression then exist"
+		puts "  -help          -- show this help page and exit"
+		puts
+	elsif ARGV[0] == '-first'
+		ARGV.shift
+		shell.execute ARGV.join(' ')
+		shell.run
+	else
+		shell.interactive = false
+		shell.reporter = nil
+		ARGV.each do |filename|
+			unless ::File.exist? filename
+				puts "#{filename}: no such file or directory"
+				next
+			end
+
+			file = ::File.open(filename)
+			content = file.read
+			lines = content.split "\n"
+			lines.each_index do |line_no|
+				line = lines[line_no]
+				begin
+					shell.execute(shell.expand(line))
+				rescue ::Exception => e
+					puts "#{filename}:#{line_no}: #{e.message}"
+					puts backtrace
+				end
+			end
+		end
+	end
+else
+	shell.run
+end
+

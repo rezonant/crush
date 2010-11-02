@@ -1,0 +1,177 @@
+require ::File.dirname(__FILE__) + '/../filter_list.rb'
+module DbusCommands
+	module DBus
+		class ObjectList < FilterList
+			def [](i)
+				suffix = '/' + i
+				if i.kind_of? String or i.kind_of? Symbol
+					i = i.to_s
+					entries.each { |x| return x if x.name == i or x.name.end_with? suffix }
+					nil
+				else 
+					super i
+				end
+			end
+			def ls(loc)
+				dirs, items = [], []
+				prefix = loc + '/'
+				entries.select { |x| x.name.start_with? prefix }.each do |x|
+					ent = x.name[prefix.length,x.name.length].split('/')[0]
+					dirs << ent if not dirs.member? ent and x.name.length > prefix.length + ent.length
+					items << ent unless items.member? ent
+				end
+				items.colorize(proc {|x| dirs.member?(x)} => :blue).columns
+			end	
+		end
+
+		class DataObject < FilterList
+			def initialize(service, name, is_system = false)
+				super nil
+				@service = service
+				@name = name
+				@is_system = is_system
+			end
+
+			attr_reader :service, :name
+			def system?; @is_system; end
+
+			def to_s
+				self.name
+			end
+			def [](i)
+				if i.kind_of? String or i.kind_of? Symbol
+					entries.each { |x| return x if x.name == i }
+				end
+				super i
+			end
+
+			def entries
+				e = super; return e if e
+				opts = []
+				opts << "--system" if system?
+				self.entries = `qdbus #{service.name} #{self.name} #{opts.join(' ')}`.split("\n").collect {|x| Method.new service, self, x.strip }
+			end
+		end
+
+		class Parameter
+			def initialize (type, name)
+				@type = type
+				@name = name
+			end
+
+			attr_reader :type, :name
+
+			def to_s
+				if @name and @name != ''
+					"#{self.type} #{self.name}"
+				else
+					self.type
+				end
+			end
+		end
+
+		class Method
+			def initialize(service, object, prototype)
+				@service = service
+				@object = object
+				@prototype = prototype
+				prototype = prototype.sub(/property /, 'property-') 
+				@method_type, @return_type, @full_name = prototype.split(' ')[0,3]
+				puts prototype unless @full_name
+				@full_name = @full_name.split('(')[0]
+				@name = @full_name[@full_name.rindex('.') + 1, @full_name.length]
+				@interface = @full_name[0, @full_name.rindex('.')]	
+
+				if prototype.include? '('
+					parms = prototype.split('(')[1]
+					parms = parms[0, parms.length - 1]
+					@parameters = parms.split(',').collect do |x| 
+						x = x.strip
+						if x.include? ' '
+							Parameter.new *x.split(' ')[0,2]
+						else
+							Parameter.new x, ''
+						end
+					end
+				else
+					@parameters = []
+				end
+			end
+
+			def call(*args)
+				`qdbus #{service.name} #{object.name} #{full_name} #{args.collect{|x| "\"#{x}\""}.join(' ')}`
+			end
+
+			def to_s
+				"#{method_type != 'method' ? '+' : ' '} #{name}(#{self.parameters.join(', ')})"
+			end
+
+			attr_reader :service, :object, :prototype, :method_type, :return_type, :full_name, :name, :interface, :parameters
+		end
+
+		class Service < ObjectList
+			def initialize (name, is_system = false)
+				super nil
+				@name = name
+				@is_system = is_system
+			end
+
+			attr_reader :name
+
+			def system?; @is_system; end;
+
+			def entries
+				e = super; return e if e
+				opts = []
+				opts << "--system" if system?
+				e = `qdbus #{opts.join(' ')} #{name}`.split("\n").collect { |x| DataObject.new self, x.strip }
+				e = e[0].entries if e.length == 1
+				self.entries = e
+			end
+
+			def [](i)
+				if i.kind_of? String or i.kind_of? Symbol
+					suffix = '/' + i
+					i = i.to_s
+					entries.each { |x| return x if x.name == i or x.name.end_with? suffix }
+					nil
+				else 
+					super i
+				end
+			end	
+
+			def to_s
+				self.name
+			end
+		end
+
+		class ServiceList < FilterList
+			def initialize(entries = nil, opts = [])
+				if entries
+					super entries
+				else
+					args = []
+					args << '--system' if opts.member? :system
+					v = `qdbus #{opts.join(' ')}`.split("\n")
+					v = v.select { |x| not x.start_with? ':' } unless opts.member? :clients
+					super v.collect { |x| Service.new x.strip }
+				end
+			end
+
+			def [](i)
+				suffix = '.' + i
+				if i.kind_of? String or i.kind_of? Symbol
+					i = i.to_s
+					entries.each { |x| return x if x.name == i or x.name.end_with? suffix }
+					nil
+				else 
+					super i
+				end
+			end
+		end
+	end
+
+	def dbus(opts = [])
+		DBus::ServiceList.new nil, opts
+	end
+end
