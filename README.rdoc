@@ -1,6 +1,9 @@
 = crush -- manage your unix systems with pure Ruby
 
-rush is a unix integration library and an interactive shell which uses pure Ruby syntax.  Walk directory trees; create, copy, search, and destroy files; find and kill processes - everything you'd normally do with shell commands, now in the strict and elegant world of Ruby.
+Crush is an interactive shell and unix integration library which uses Ruby as its core syntax.  Walk directory trees; create, copy, search, and destroy files; find and kill processes - everything you'd normally do with shell commands, now in the strict and elegant world of Ruby.
+
+Crush is originally based on the Rush shell created by Adam Wiggins. That shell can be found at http://github.com/adamwiggins/rush. Although Crush is a separate
+project with a separate focus and different goals, we do maintain our own fork of Adam's rush shell for pushing useful changes upstream. For that repository, visit http://github.com/rezonant/rush.
 
 == Usage
 
@@ -63,23 +66,16 @@ Clustering:
 
 For more details on syntax and commands, see:
 
-* Rush
-* Rush::Entry
-* Rush::File
-* Rush::Dir
-* Rush::Commands
-* Rush::Box
-* Rush::Process
+* Crush
+* Crush::Entry
+* Crush::File
+* Crush::Dir
+* Crush::Commands
+* Crush::Box
+* Crush::Process
+* The in-shell help system (use the 'help' command)
 
 == Meta
 
-Created by Adam Wiggins
-
-Patches contributed by Chihiro Ito, Gabriel Ware, Michael Schutte, Ricardo Chimal Jr., and Nicholas Schlueter, Pedro Belo, and Martin Kuehl
-
-Logo by James Lindenbaum
-
-Released under the MIT License: http://www.opensource.org/licenses/mit-license.php
-
-http://stridetechnologies.net/crush
+Crush is William Lahti's extended version of the Rush shell. The Rush shell was originally created by Adam Wiggins, with patches by Chihiro Ito, Gabriel Ware, Michael Schutte, Ricardo Chimal Jr., and Nicholas Schlueter, Pedro Belo, and Martin Kuehl. The Rush logo was created by James Lindenbaum. Released under the MIT License: http://www.opensource.org/licenses/mit-license.php
 
