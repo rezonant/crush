@@ -4,7 +4,8 @@ require 'readline'
 require 'tempfile'
 require 'spoon' if RubyEngine == 'jruby'
 
-require File.dirname(__FILE__) + '/../rbmodexcl/mrimodexcl'
+#require File.dirname(__FILE__) + '/../rbmodexcl/mrimodexcl'
+
 begin 
 	require File.dirname(__FILE__) + '/lexer.rb' 
 rescue LoadError 
@@ -189,13 +190,8 @@ module Crush
 		#   crush> '#{bar} is the same as #{Foo::bar}'
 		#    => "baz is the same as baz"
 		def bind_include(mod)
-			mod.instance_methods.each { |method| mod.send :private, method }
-			Kernel.instance_eval do
-				puts "including mod #{mod}"
-			  private
-				 include mod
-			end
-			#eval('self.class', @binding).class_eval { include mod }
+			s = eval "self", @binding
+			s.instance_eval { extend mod }
 		end
 
 		def bind_uninclude(mod)
