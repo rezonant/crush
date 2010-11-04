@@ -1,28 +1,38 @@
-= crush -- manage your unix systems with pure Ruby
+= crush -- An approachable, fully-featured UNIX shell for Ruby programmers
 
-Crush is an interactive shell and unix integration library which uses Ruby as its core syntax.  Walk directory trees; create, copy, search, and destroy files; find and kill processes - everything you'd normally do with shell commands, now in the strict and elegant world of Ruby.
+Crush is a UNIX command shell for programmers which uses Ruby as its language of expression. Walk directory trees; create, copy, search, and destroy files; 
+find and kill processes - everything you'd normally do with shell commands, now in the world of Ruby.
 
 Crush is originally based on the Rush shell created by Adam Wiggins. That shell can be found at http://github.com/adamwiggins/rush. Although Crush is a separate
 project with a separate focus and different goals, we do maintain our own fork of Adam's rush shell for pushing useful changes upstream. For that repository, visit http://github.com/rezonant/rush.
 
 == Usage
 
-Count the number of classes in your project using bash:
+Traverse and list directories:
 
-  find myproj -name \*.rb | xargs grep '^\s*class' | wc -l
+  wd.ls
+  wd.Code.Projects.crush.cd
+  wd.up["Mentauk.Text.Fanventure/bin"].cd
+  wd  # => ../Code
 
-In crush, this is:
+Count the number of classes in your project:
 
   myproj['**/*.rb'].search(/^\s*class/).lines.size
 
-Pesky stray mongrels?  In bash:
-
-  kill `ps aux | grep mongrel_rails | grep -v grep | cut -c 10-20`
-
-In crush:
+Pesky stray mongrels?
 
   processes.filter(:cmdline => /mongrel_rails/).kill
 
+Is that too long for you?
+
+  ps.f(:cmdline => /mongrel_rails/).kill
+
+With Crush, BASH is at your side:
+
+  $ x=2; ls "$HOME"; echo ; echo "$x ... #{1+1}"
+  > Desktop/    Documents/   
+  > 2 ... 2
+  
 == As a library
 
   require 'rubygems'
