@@ -28,6 +28,10 @@ class Crush::Dir < Crush::Entry
 		"#{v}/"
 	end
 
+	def method_missing(name, *args)
+		$CRUSH.options[:dir_method_missing] ? (self / name) : super
+	end
+
 	def destroy(*options)
 		if options.member? :dir
 			if entries.length > 0 and not options.member? :sure
